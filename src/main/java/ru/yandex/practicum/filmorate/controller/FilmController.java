@@ -20,7 +20,7 @@ import java.util.Set;
 @RequestMapping("/films")
 public class FilmController {
     private final Map<Long, Film> films = new HashMap<>();
-    private final LocalDate FILM_RELEASE = LocalDate.of(1895, 12, 28);
+    private static final LocalDate FILM_RELEASE = LocalDate.of(1895, 12, 28);
     private long currentId = 0;
     private static final Logger log = LoggerFactory.getLogger(FilmController.class);
     private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();

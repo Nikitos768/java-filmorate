@@ -4,7 +4,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ConstraintViolation;
+
 import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
@@ -28,8 +30,8 @@ public class UserController {
         log.info("Запрос на добавление нового пользователя: {}", user.getName());
         validate(user);
         user.setId(getNextId());
-        users.put(user.getId(),user);
-        log.info("Успешное добовление нового пользователя: {}",user.getName());
+        users.put(user.getId(), user);
+        log.info("Успешное добовление нового пользователя: {}", user.getName());
         return user;
     }
 

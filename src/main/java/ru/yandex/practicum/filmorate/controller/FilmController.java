@@ -7,7 +7,7 @@ import jakarta.validation.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.Exception.ConditionsNotMetException;
+import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
@@ -64,6 +64,7 @@ public class FilmController {
 
         Set<ConstraintViolation<Film>> violations = validator.validate(film);
         if (!violations.isEmpty()) {
+            log.warn("Валидация фильма завершилась с ошибкой: {}", violations.iterator().next().getMessage());
             throw new ConditionsNotMetException(violations.iterator().next().getMessage());
         }
 

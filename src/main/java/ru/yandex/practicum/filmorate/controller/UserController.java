@@ -1,75 +1,71 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.Validation;
-import jakarta.validation.Validator;
-import jakarta.validation.ConstraintViolation;
 
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    Map<Long, User> users = new HashMap<>();
-    private long currentId = 0;
-    private static final Logger log = LoggerFactory.getLogger(UserController.class);
-    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping
     public User addUser(@Valid @RequestBody User user) {
-        log.info("Запрос на добавление нового пользователя: {}", user.getName());
-        validate(user);
-        user.setId(getNextId());
-        users.put(user.getId(), user);
-        log.info("Успешное добовление нового пользователя: {}", user.getName());
-        return user;
+        return userService.addUser(user);
     }
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-        log.info("Запрос на обновление пользователя с ID: {}", user.getId());
-        if (user.getId() == null || !users.containsKey(user.getId())) {
-            log.warn("Пользователь с таким ID {} не найден.", user.getId());
-            throw new ConditionsNotMetException("Пользователь с таким ID не найден.");
-        }
-        validate(user);
-        users.put(user.getId(), user);
-        log.info("Успешное изменение пользователя с ID: {}", user.getId());
-        return user;
+        return userService.updateUser(user);
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.addFriend(id,friendId);
     }
 
     @GetMapping
     public Collection<User> getAllUsers() {
-        log.info("Получен запрос на получение всех пользователей. Всего пользователей: {}", users.size());
-        return users.values();
+        return userService.getAllUsers();
     }
 
-    public void validate(User user) {
-        if (user == null) {
-            throw new ConditionsNotMetException("Пользователь не может быть null.");
-        }
-
-        Set<ConstraintViolation<User>> violations = validator.validate(user);
-        if (!violations.isEmpty()) {
-            throw new ConditionsNotMetException(violations.iterator().next().getMessage());
-        }
-
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
+    @GetMapping("/{id}")
+    public Optional<User> getUser(@PathVariable Long id) {
+        return  userService.findById(id);
     }
 
-    public Long getNextId() {
-        return ++currentId;
+    @GetMapping("/{id}/friends")
+    public List<User> returnFriends(@PathVariable long id) {
+        return userService.returnFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public List<User> returnCommonFriends(@PathVariable Long id, @PathVariable Long otherId) {
+        return userService.returnCommonFriends(id, otherId);
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deletedUser(@Valid @RequestBody User user) {
+        return userService.deletedUser(user)
+                .map(f -> ResponseEntity.noContent().<Void>build())
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deletedFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.deletedFriend(id, friendId);
     }
 }

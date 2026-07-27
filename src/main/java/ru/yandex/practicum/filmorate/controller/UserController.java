@@ -34,7 +34,7 @@ public class UserController {
 
     @PutMapping("/{id}/friends/{friendId}")
     public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
-        userService.addFriend(id,friendId);
+        userService.addFriend(id, friendId);
     }
 
     @GetMapping
@@ -44,7 +44,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public Optional<User> getUser(@PathVariable Long id) {
-        return  userService.findById(id);
+        return userService.findById(id);
     }
 
     @GetMapping("/{id}/friends")

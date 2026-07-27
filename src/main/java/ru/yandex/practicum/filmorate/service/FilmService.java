@@ -17,7 +17,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class FilmService {
-    private  final FilmStorage filmStorage;
+    private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private static final LocalDate FILM_RELEASE = LocalDate.of(1895, 12, 28);
 
@@ -53,7 +53,7 @@ public class FilmService {
         }
     }
 
-    public void addLikes (Long filmId, Long userId) {
+    public void addLikes(Long filmId, Long userId) {
         Film film = filmStorage.findById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
 
@@ -61,14 +61,14 @@ public class FilmService {
                 .orElseThrow(() -> new NotFoundException("Пользователь с ID " + userId + " не найден"));
 
         if (film.getLikes().contains(userId)) {
-            throw  new ValidationException("Пользователь с ID: "+ userId +" уже поставил лайк");
+            throw new ValidationException("Пользователь с ID: " + userId + " уже поставил лайк");
         }
 
         film.getLikes().add(userId);
         filmStorage.updateFilm(film);
     }
 
-    public void deletedLikes (Long filmId, Long userId) {
+    public void deletedLikes(Long filmId, Long userId) {
         Film film = filmStorage.findById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
 

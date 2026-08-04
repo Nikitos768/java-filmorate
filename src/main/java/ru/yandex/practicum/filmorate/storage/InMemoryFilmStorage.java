@@ -32,6 +32,12 @@ public class InMemoryFilmStorage implements FilmStorage {
             throw new NotFoundException("Фильм с таким ID не найден.");
         }
 
+        Film oldFilm = films.get(film.getId());
+
+        if (oldFilm.getLikes() != null) {
+            film.setLikes(oldFilm.getLikes());
+        }
+
         films.put(film.getId(), film);
         log.info("Фильм с ID {} успешно обновлен.", film.getId());
         return film;

@@ -31,6 +31,12 @@ public class Film {
 
     @Positive(message = "Продолжительность фильма должна быть больше нуля.")
     private int duration;
+
+    private Mpa mpa;
+
+    @Builder.Default
+    private Set<Genre> genres = new HashSet<>();
+
     @Builder.Default
     private Set<Long> likes = new HashSet<>();
 }

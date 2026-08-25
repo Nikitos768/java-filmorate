@@ -1,6 +1,7 @@
 package ru.yandex.practicum.filmorate.service;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -8,18 +9,23 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
+@Slf4j
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private static final LocalDate FILM_RELEASE = LocalDate.of(1895, 12, 28);
+
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage,
+                       @Qualifier("userDbStorage") UserStorage userStorage) {
+        this.filmStorage = filmStorage;
+        this.userStorage = userStorage;
+    }
 
     public Film getFilm(Long id) {
         return filmStorage.findById(id)
@@ -32,6 +38,7 @@ public class FilmService {
     }
 
     public Film updateFilm(Film film) {
+        getFilm(film.getId());
         validate(film);
         return filmStorage.updateFilm(film);
     }
@@ -54,39 +61,24 @@ public class FilmService {
     }
 
     public void addLikes(Long filmId, Long userId) {
-        Film film = filmStorage.findById(filmId)
+        filmStorage.findById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
-
         userStorage.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с ID " + userId + " не найден"));
 
-        if (film.getLikes().contains(userId)) {
-            throw new ValidationException("Пользователь с ID: " + userId + " уже поставил лайк");
-        }
-
-        film.getLikes().add(userId);
-        filmStorage.updateFilm(film);
+        filmStorage.addLike(filmId, userId);
     }
 
     public void deletedLikes(Long filmId, Long userId) {
-        Film film = filmStorage.findById(filmId)
+        filmStorage.findById(filmId)
                 .orElseThrow(() -> new NotFoundException("Фильм с ID " + filmId + " не найден"));
-
         userStorage.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с ID " + userId + " не найден"));
 
-        if (film.getLikes().contains(userId)) {
-            film.getLikes().remove(userId);
-            filmStorage.updateFilm(film);
-        }
+        filmStorage.deleteLike(filmId, userId);
     }
 
     public List<Film> getTopFilms(int count) {
-        return filmStorage.getAllFilm()
-                .stream()
-                .sorted((film1, film2) -> Integer.compare(film2.getLikes().size(), film1.getLikes().size()))
-                .limit(count)
-                .toList();
+        return filmStorage.getTopFilms(count);
     }
 }
-

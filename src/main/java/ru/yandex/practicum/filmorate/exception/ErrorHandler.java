@@ -1,7 +1,9 @@
 package ru.yandex.practicum.filmorate.exception;
 
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -43,5 +45,11 @@ public class ErrorHandler extends RuntimeException {
     public Map<String, String> handleThrowable(final Throwable e) {
         log.error("Произошла непредвиденная ошибка на сервере (500): ", e);
         return Map.of("error", "Произошла непредвиденная ошибка на сервере.");
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public  Map<String, String> handleDataIntegrityViolation(final DataIntegrityViolationException e) {
+        return Map.of("error", "Нарушение целостности данных: указан несуществующий ID справочника.");
     }
 }

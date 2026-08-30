@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Mpa;
@@ -65,8 +66,12 @@ public class FilmDbStorage implements FilmStorage {
             log.error("Фильм с ID {} не найден для обновления", film.getId());
             throw new IllegalArgumentException("Фильм не найден"); // Сюда можно подставить ваше кастомное исключение NotFoundException
         }
+
+        saveGenres(film);
+
         log.info("Фильм с ID {} успешно обновлен", film.getId());
-        return film;
+        return findById(film.getId())
+                .orElseThrow(() -> new NotFoundException("Ошибка при получении обновленного фильма с ID " + film.getId()));
     }
 
     @Override
@@ -134,7 +139,11 @@ public class FilmDbStorage implements FilmStorage {
                 "ORDER BY likes_count DESC " +
                 "LIMIT ?";
 
-        return jdbcTemplate.query(sqlQuery, this::mapRowToFilm, count);
+        List<Film> films = jdbcTemplate.query(sqlQuery, this::mapRowToFilm, count);
+
+        loadGenresForFilms(films);
+
+        return films;
     }
 
     private void saveGenres(Film film) {
@@ -145,7 +154,9 @@ public class FilmDbStorage implements FilmStorage {
             return;
         }
 
-        List<Genre> genres = new ArrayList<>(film.getGenres());
+        List<Genre> genres = film.getGenres().stream()
+                .distinct()
+                .toList();
         String insertSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
 
         jdbcTemplate.batchUpdate(insertSql, new BatchPreparedStatementSetter() {
